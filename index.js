@@ -16,6 +16,7 @@ import {
     Platform,
     Animated,
     UIManager,
+    InteractionManager
 } from 'react-native';
 
 const isIOS = Platform.OS === 'ios';
@@ -255,10 +256,20 @@ export default class extends Component {
             this._root = this._root._component;
         };
 
+        InteractionManager.runAfterInteractions(() => {
+            if (this._root._innerViewRef) {
+                this._root._innerViewRef.measureInWindow((x, y, width, height) => {
+                    this._topOffset = y;
+                });
+            } else {
+                window.bugsnag.notify('input-scroll-view invalid inside runAfterInteractions');
+            }
+        });
+
         setTimeout(() => {
-            this._root._innerViewRef.measureInWindow((x, y, width, height) => {
-                this._topOffset = y;
-            });
+            if (!this._root._innerViewRef) {
+                window.bugsnag.notify('input-scroll-view invalid inside setTimeout');
+            }
         });
     };
 
